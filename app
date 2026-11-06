@@ -245,25 +245,20 @@ server <- function(input, output, session) {
       ) +
       
       # Research-field labels
-      geom_text_repel(
-        data = centres,
-        aes(
-          x = cx,
-          y = cy - 3.8,
-          label = forschungsfeld
-        ),
-        size = 2.7,
-        max.overlaps = Inf,
-        box.padding = 1,
-        point.padding = 1,
-        force = 4,
-        max.iter = 20000,
-        segment.alpha = 0.3,
-        seed = 42
-        fontface = "bold",
-        size = 3.5
-      ) +
-      
+      # Research-field labels: above each bubble
+   #   geom_text(
+  #      data = bubbles,
+  #      aes(
+  #        x = cx,
+  #        y = cy + radius + 1.2,
+  #        label = forschungsfeld
+  #      ),
+  #      fontface = "bold",
+  #      size = 3.5,
+  #      colour = "#243746",
+  #      check_overlap = FALSE
+  #    ) +
+  #    
       coord_equal(clip = "off") +
       theme_void(base_size = 13) +
       theme(
@@ -272,11 +267,40 @@ server <- function(input, output, session) {
       ) +
       labs(colour = "Institution")
     
-    ggplotly(p, tooltip = "text") |>
+    # Convert to Plotly
+    interactive_plot <- ggplotly(p, tooltip = "text")
+    
+    # Add research-field labels directly as Plotly annotations
+    field_labels <- lapply(
+      seq_len(nrow(bubbles)),
+      function(i) {
+        list(
+          x = bubbles$cx[i],
+          y = bubbles$cy[i] + bubbles$radius[i] + 1.2,
+          text = bubbles$forschungsfeld[i],
+          showarrow = FALSE,
+          font = list(
+            size = 13,
+            color = "#243746"
+          ),
+          xanchor = "center",
+          yanchor = "bottom"
+        )
+      }
+    )
+    
+    interactive_plot |>
       layout(
+        annotations = field_labels,
         legend = list(orientation = "h"),
-        hovermode = "closest"
+        hovermode = "closest",
+        margin = list(
+          l = 60, r = 60,
+          t = 80, b = 60
+        )
       )
+    
+
   })
   
   output$data <- renderTable(data())
