@@ -1,7 +1,7 @@
-install.packages(c(
-  "shiny", "dplyr", "readr",
-  "ggplot2", "ggrepel", "plotly", "igraph"
-))
+#install.packages(c(
+#  "shiny", "dplyr", "readr",
+#  "ggplot2", "ggrepel", "plotly", "igraph"
+#))
 
 library(shiny)
 library(dplyr)
