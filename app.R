@@ -10,6 +10,7 @@ library(ggplot2)
 library(ggrepel)
 library(plotly)
 library(igraph)
+
 ui <- fluidPage(
   titlePanel('Forschungslandschaft Schweiz'),
   p('Forschende nach Forschungsfeld und institutioneller Zugehörigkeit'),
@@ -80,7 +81,7 @@ repel_labels <- function(labels, xlim, ylim, iterations = 350L) {
 server <- function(input, output, session) {
   
   data <- reactive({
-    invalidateLater(10000, session)
+    invalidateLater(60000, session)
     
     raw <- tryCatch({
       
@@ -118,13 +119,21 @@ server <- function(input, output, session) {
     raw |>
       mutate(across(all_of(required), ~ trimws(as.character(.x)))) |>
       mutate(
-        person = na_if(person, ''),
-        institution = if_else(is.na(institution) | institution == '', 'Unbekannt', institution),
-        schwerpunkt = if_else(is.na(schwerpunkt) | schwerpunkt == '', 'Nicht angegeben', schwerpunkt),
-        forschungsfeld = na_if(forschungsfeld, '')
-      ) |>
-      filter(!is.na(person), !is.na(forschungsfeld)) |>
-      distinct()
+        person = na_if(person, ""),
+        person = if_else(is.na(person), "Unbekannt", person),
+        institution = if_else(
+          is.na(institution) | institution == "",
+          "Unbekannt", institution
+        ),
+        schwerpunkt = if_else(
+          is.na(schwerpunkt) | schwerpunkt == "",
+          "Nicht angegeben", schwerpunkt
+        ),
+        forschungsfeld = if_else(
+          is.na(forschungsfeld) | forschungsfeld == "",
+          "Nicht angegeben", forschungsfeld
+        )
+      )
   })
 
   network_data <- reactive({
@@ -248,6 +257,7 @@ server <- function(input, output, session) {
          hulls = hulls, colors = colors, graph = g)
   })
 
+
   output$network <- renderPlotly({
     net <- network_data()
     nodes <- net$nodes
@@ -292,11 +302,18 @@ server <- function(input, output, session) {
     inst <- nodes |> filter(type)
     if (nrow(inst) > 0) {
       p <- p |> add_trace(
-        data = inst, x = ~x, y = ~y, type = 'scatter', mode = 'markers',
+        data = inst, x = ~x, y = ~y,
+        type = 'scatter', mode = 'markers',
         hovertext = ~tooltip, hoverinfo = 'text',
-        marker = list(symbol = 'square', size = 13, color = '#333333',
-                      line = list(color = 'white', width = 1)),
-        name = 'Institutionen', showlegend = TRUE, inherit = FALSE
+        marker = list(
+          symbol = 'square',
+          size = 7,
+          color = '#333333',
+          line = list(color = 'white', width = 1)
+        ),
+        name = 'Institutionen',
+        showlegend = FALSE,
+        inherit = FALSE
       )
     }
 
@@ -362,5 +379,3 @@ server <- function(input, output, session) {
 
   output$data <- renderTable({ data() }, striped = TRUE, spacing = 'xs')
 }
-
-shinyApp(ui = ui, server = server)
