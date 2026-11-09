@@ -1,15 +1,11 @@
-#install.packages(c(
-#  "shiny", "dplyr", "readr",
-#  "ggplot2", "ggrepel", "plotly", "igraph"
-#))
 
 library(shiny)
 library(dplyr)
 library(readr)
-library(ggplot2)
-library(ggrepel)
-library(plotly)
 library(igraph)
+library(plotly)
+library(tibble)
+
 
 ui <- fluidPage(
   titlePanel('Forschungslandschaft Schweiz'),
@@ -379,3 +375,5 @@ server <- function(input, output, session) {
 
   output$data <- renderTable({ data() }, striped = TRUE, spacing = 'xs')
 }
+
+shinyApp(ui = ui, server = server)
